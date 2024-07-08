@@ -1,0 +1,103 @@
+import { useEffect } from 'react';
+import { useDataProvider, useRefresh } from 'react-admin';
+
+const usePolling = (resource, interval = 5000) => {
+    const dataProvider = useDataProvider();
+    const refresh = useRefresh();
+
+    useEffect(() => {
+        const fetchData = () => {
+            dataProvider.getList(resource, { pagination: { page: 1, perPage: 10 }, sort: { field: 'published_at', order: 'DESC' }, filter: {} })
+                .then(() => refresh());
+        };
+
+        const intervalId = setInterval(fetchData, interval);
+
+        // 초기 데이터 로드
+        fetchData();
+
+        return () => clearInterval(intervalId);
+    }, [dataProvider, refresh, resource, interval]);
+};
+import { useEffect } from 'react';
+import { useDataProvider, useRefresh } from 'react-admin';
+
+const usePolling = (resource, interval = 5000) => {
+    const dataProvider = useDataProvider();
+    const refresh = useRefresh();
+
+    useEffect(() => {
+        const fetchData = () => {
+            dataProvider.getList(resource, { pagination: { page: 1, perPage: 10 }, sort: { field: 'id', order: 'DESC' }, filter: {} })
+                .then(() => refresh());
+        };
+
+        const intervalId = setInterval(fetchData, interval);
+
+        // 초기 데이터 로드
+        fetchData();
+
+        return () => clearInterval(intervalId);
+    }, [dataProvider, refresh, resource, interval]);
+};
+
+export default usePolling;
+export default usePolling;
+
+import React from 'react';
+import { useGetList, Loading } from 'react-admin';
+import usePolling from './usePolling'; // custom hook을 import
+
+const LatestNews = () => {
+    usePolling('posts'); // posts 리소스에 대해 Polling 적용
+
+    const {
+        data: posts,
+        total,
+        isLoading,
+        error,
+    } = useGetList("posts", {
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: "published_at", order: "DESC" },
+    });
+
+    if (isLoading) {
+        return <Loading />;
+    }
+    if (error) {
+        return <p>ERROR</p>;
+    }
+    return (
+        <>
+            <h1>Latest news</h1>
+            <ul>
+                {posts.map((post) => (
+                    <li key={post.id}>{post.title}</li>
+                ))}
+            </ul>
+            <p>
+                {posts.length} / {total} articles
+            </p>
+        </>
+    );
+};
+
+export default LatestNews;
+
+import React from 'react';
+import { List, Datagrid, TextField } from 'react-admin';
+import usePolling from './usePolling'; // custom hook을 import
+
+export const PostList = () => {
+    usePolling('posts'); // posts 리소스에 대해 Polling 적용
+
+    return (
+        <List>
+            <Datagrid>
+                <TextField source="id" />
+                <TextField source="title" />
+                <TextField source="body" />
+            </Datagrid>
+        </List>
+    );
+};
